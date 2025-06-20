@@ -1,3 +1,5 @@
+// C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\(tabs)\index.tsx
+
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback } from 'react';
@@ -5,11 +7,11 @@ import { Image, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, Te
 
 SplashScreen.preventAutoHideAsync();
 
-export default function HomeScreen() {
+export default function HomeScreen() { // O nome da função pode ser HomeScreen ou IndexScreen
   const [fontsLoaded, fontError] = useFonts({
     'Afacad-Regular': require('@/assets/fonts/Afacad-VariableFont_wght.ttf'),
     'Afacad-Italic': require('@/assets/fonts/Afacad-Italic-VariableFont_wght.ttf'),
-    'Angkor-Regular': require('@/assets/fonts/Angkor-Regular.ttf'),
+    'Angkor-Regular': require('@/assets/fonts/Angkor-Regular.ttf'), // Adicione esta fonte se existir
     'BebasNeue-Regular': require('@/assets/fonts/BebasNeue-Regular.ttf'),
   });
 
@@ -38,6 +40,8 @@ export default function HomeScreen() {
             <Image
               source={require('@/assets/images/icons/sino.png')}
               style={styles.notificationIcon}
+              // Para 'tintColor', use a propriedade 'tintColor' diretamente
+              // tintColor: '#3355ce'
             />
             <View style={styles.notificationBadge} />
           </Pressable>
@@ -48,6 +52,8 @@ export default function HomeScreen() {
             <Image
               source={require('@/assets/images/icons/lupa.png')}
               style={styles.searchIcon}
+              // Para 'tintColor', use a propriedade 'tintColor' diretamente
+              // tintColor: '#888'
             />
             <TextInput
               placeholder="Buscar..."

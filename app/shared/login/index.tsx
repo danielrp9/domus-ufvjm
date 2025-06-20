@@ -1,126 +1,174 @@
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { Image, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+// app/shared/login/index.tsx
+import { Ionicons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import * as SplashScreen from 'expo-splash-screen';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
+import { useAuth } from '../../../app/context/AuthContext'; // Importa o hook useAuth
 
-export default function RegisterScreen() {
-  const router = useRouter();
+// SplashScreen.preventAutoHideAsync(); // Já é chamado no _layout.tsx principal
 
-  const [emailOrUser, setEmailOrUser] = useState('');
-  const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
-  const domuslogo = require('@/assets/images/logo-vetorizada.png');
+export default function LoginScreen() {
+  const { signIn, isLoading } = useAuth(); // Acede às funções e estado do contexto de autenticação
 
+  const [fontsLoaded, fontError] = useFonts({
+    'Afacad-Regular': require('@/assets/fonts/Afacad-VariableFont_wght.ttf'),
+    'Afacad-Italic': require('@/assets/fonts/Afacad-Italic-VariableFont_wght.ttf'),
+    'BebasNeue-Regular': require('@/assets/fonts/BebasNeue-Regular.ttf'),
+  });
 
-  const handleRegister = () => {
-    console.log({ emailOrUser, password, remember });
-    //router.push('/(tabs)/index');
+  const [email, setEmail] = useState(''); // Estado para o email (será o 'username' da API)
+  const [password, setPassword] = useState(''); // Estado para a password
+
+  // onLayoutRootView e a condição if (!fontsLoaded && !fontError) são removidos.
+  // As fontes são gerenciadas pelo _layout.tsx principal.
+
+  const handleLogin = async () => {
+    // Validação básica no frontend antes de enviar
+    if (!email || !password) {
+      Alert.alert("Erro no Login", "Por favor, preencha o email e a password.");
+      return;
+    }
+
+    try {
+      console.log("LOGIN SCREEN: Tentando fazer login para o email:", email); // DEBUG
+      await signIn(email, password); // Chama a função de login do contexto
+      // A navegação para a tela principal (tabs) já é feita dentro do signIn no AuthContext
+      console.log("LOGIN SCREEN: Login bem-sucedido (se o AuthContext não redirecionou, algo está errado)."); // DEBUG
+    } catch (e) {
+      // O erro já é tratado e exibido no Alert dentro do signIn, mas podemos logar aqui também
+      console.error("LOGIN SCREEN: Erro ao tentar fazer login na tela:", e); // DEBUG
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={domuslogo}
-        style={styles.logo}
-      />
-      <Text style={styles.title}>Domus</Text>
+    <ScrollView 
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollViewContent}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.container}> {/* Removido onLayoutRootView */}
+        <StatusBar barStyle="dark-content" />
+        
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>DOMUS</Text>
+        </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="E-mail ou usuário"
-        value={emailOrUser}
-        onChangeText={setEmailOrUser}
-        autoCapitalize="none"
-      />
+        <View style={styles.formContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite seu email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+          <Text style={styles.label}>Senha</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite sua senha"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/(tabs)')}>
-        <Text style={styles.buttonText}>Entrar</Text>
-      </TouchableOpacity>
+          <Pressable style={styles.button} onPress={handleLogin} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
+          </Pressable>
 
-      <View style={styles.row}>
-        <Switch value={remember} onValueChange={setRemember} />
-        <Text style={styles.rememberText}>Lembrar minha escolha</Text>
+          
+        </View>
       </View>
-      <View style={styles.column}>
-        <TouchableOpacity onPress={() => alert('Funcionalidade de ajuda ainda não implementada')}>
-          <Text style={styles.helpText}>Precisa de ajuda?</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
-    paddingHorizontal: 30,
+    backgroundColor: 'white',
+  },
+  scrollViewContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    paddingBottom: 50,
   },
-  logo: {
-    width: 90,
-    height: 90,
-    marginBottom: 10,
-    resizeMode: 'contain',
+  container: {
+    backgroundColor: 'white',
+    padding: 20,
+    flex: 1,
+    justifyContent: 'flex-start',
+    paddingTop: 50,
+    alignItems: 'center',
+    width: '100%',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 30,
-    color: '#003049',
+  header: {
+    marginBottom: 40,
+  },
+  pageTitle: {
+    fontSize: 60,
+    color: '#3355ce',
+    fontFamily: 'BebasNeue-Regular',
+  },
+  formContainer: {
+    width: '90%',
+    maxWidth: 400,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 15,
+    padding: 25,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  label: {
+    fontSize: 18,
+    fontWeight: '500',
+    marginBottom: 8,
+    fontFamily: 'Afacad-Regular',
+    color: '#333',
   },
   input: {
-    width: '100%',
-    height: 45,
-    backgroundColor: '#e0e0e0',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 10,
+    padding: 14,
+    fontSize: 16,
+    marginBottom: 20,
+    backgroundColor: '#fff',
     fontFamily: 'Afacad-Regular',
+    color: '#333',
   },
   button: {
-    width: '100%',
-    height: 45,
     backgroundColor: '#3355ce',
-    borderRadius: 6,
-    justifyContent: 'center',
+    borderRadius: 12,
+    padding: 16,
     alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 10,
+    justifyContent: 'center',
+    marginTop: 10,
+    flexDirection: 'row', // Para o ActivityIndicator
   },
   buttonText: {
-    color: '#fff',
+    color: 'white',
     fontFamily: 'Afacad-Regular',
+    fontWeight: 'bold',
+    fontSize: 20,
   },
-  row: {
-    width: '100%',
-    marginTop: 10,
-    flexDirection:'row',
+  registerButton: {
+    marginTop: 20,
     alignItems: 'center',
   },
-  column:{
-    width: '100%',
-    marginTop: 40,
-    flexDirection:'column',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  rememberText: {
-    marginLeft: 10,
-    fontSize: 12,
-    fontFamily: 'Afacad-Regular',
-  },
-  helpText: {
-    fontSize: 12,
+  registerButtonText: {
     color: '#3355ce',
+    fontSize: 16,
     fontFamily: 'Afacad-Regular',
   },
 });
