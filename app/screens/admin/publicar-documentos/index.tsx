@@ -122,8 +122,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40,
   },
-  header: {
+ header: {
+    justifyContent: 'center', // Centraliza horizontalmente
+    alignItems: 'center',    // Centraliza verticalmente
     marginBottom: 30,
+
   },
   pageTitle: {
     fontSize: 40,

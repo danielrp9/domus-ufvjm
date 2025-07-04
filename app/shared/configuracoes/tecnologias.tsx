@@ -20,31 +20,71 @@ export default function TecnologiasScreen() {
 
         <View style={styles.techBox}>
           <View style={styles.iconRow}>
-            <FontAwesome5 name="tools" size={24} color="#3355ce" />
-            <Text style={styles.techTitle}>[Tecnologia a ser adicionada]</Text>
+            <FontAwesome5 name="python" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>Python</Text>
           </View>
           <Text style={styles.techDescription}>
-            Descrição da tecnologia e como ela está sendo utilizada no projeto.
+            Linguagem de programação versátil, utilizada no back-end para construir a lógica de negócios, APIs robustas e processamento de dados.
           </Text>
         </View>
 
         <View style={styles.techBox}>
           <View style={styles.iconRow}>
-            <FontAwesome5 name="tools" size={24} color="#3355ce" />
-            <Text style={styles.techTitle}>[Tecnologia a ser adicionada]</Text>
+            <FontAwesome5 name="github" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>GitHub</Text>
           </View>
           <Text style={styles.techDescription}>
-            Descrição da tecnologia e como ela está sendo utilizada no projeto.
+            Plataforma essencial para controle de versão e colaboração. Facilita o trabalho em equipe, o rastreamento de mudanças no código e a gestão do ciclo de desenvolvimento.
           </Text>
         </View>
 
         <View style={styles.techBox}>
           <View style={styles.iconRow}>
-            <FontAwesome5 name="tools" size={24} color="#3355ce" />
-            <Text style={styles.techTitle}>[Tecnologia a ser adicionada]</Text>
+            <FontAwesome5 name="docker" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>Container (Docker)</Text>
           </View>
           <Text style={styles.techDescription}>
-            Descrição da tecnologia e como ela está sendo utilizada no projeto.
+            Tecnologia de conteinerização (ex: Docker) para empacotar a aplicação e suas dependências, garantindo ambientes de desenvolvimento, teste e produção consistentes e isolados.
+          </Text>
+        </View>
+
+        <View style={styles.techBox}>
+          <View style={styles.iconRow}>
+            <FontAwesome5 name="cloud" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>Cloudflare</Text>
+          </View>
+          <Text style={styles.techDescription}>
+            Utilizado para otimização de performance, segurança de rede (CDN, proteção DDoS) e como proxy reverso, garantindo que a aplicação seja rápida e segura para os usuários.
+          </Text>
+        </View>
+
+        <View style={styles.techBox}>
+          <View style={styles.iconRow}>
+            <FontAwesome5 name="js-square" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>TypeScript</Text>
+          </View>
+          <Text style={styles.techDescription}>
+            Superconjunto de JavaScript que adiciona tipagem estática. Melhora a manutenibilidade do código, a detecção de erros em tempo de desenvolvimento e a escalabilidade do projeto.
+          </Text>
+        </View>
+
+        <View style={styles.techBox}>
+          <View style={styles.iconRow}>
+            <FontAwesome5 name="terminal" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>Poetry</Text>
+          </View>
+          <Text style={styles.techDescription}>
+            Ferramenta para gerenciamento de dependências e pacotes em projetos Python. Garante um ambiente de desenvolvimento limpo e reprodutível, facilitando a instalação e o empacotamento.
+          </Text>
+        </View>
+
+        <View style={styles.techBox}>
+          <View style={styles.iconRow}>
+            <FontAwesome5 name="database" size={24} color="#3355ce" />
+            <Text style={styles.techTitle}>PostgreSQL</Text>
+          </View>
+          <Text style={styles.techDescription}>
+            Sistema de gerenciamento de banco de dados relacional robusto e de código aberto. Utilizado para armazenar e gerenciar os dados da aplicação de forma segura e eficiente.
           </Text>
         </View>
 
@@ -56,33 +96,36 @@ export default function TecnologiasScreen() {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: '#F4F7FC', // Fundo mais suave
   },
   scrollViewContent: {
     flexGrow: 1,
-    paddingBottom: 20,
+    paddingBottom: 30, // Mais padding na parte inferior
   },
   container: {
-    backgroundColor: 'white',
-    padding: 20,
+    backgroundColor: '#F4F7FC',
+    paddingHorizontal: 25, // Padding horizontal para as laterais
+   paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + 20 : 60,
     flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40,
   },
   pageTitle: {
-    fontSize: 40,
-    color: '#3355ce',
+    fontSize: 34, // Um pouco menor para melhor proporção
+    color: '#2C3E50', // Cor mais escura e sóbria para o título
     fontFamily: 'BebasNeue-Regular',
-    top: 32,
+    textAlign: 'center', // Centralizar o título
     marginBottom: 40,
+    letterSpacing: 1, // Adicionar um pouco de espaçamento entre letras
   },
   techBox: {
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    marginBottom: 24,
+    backgroundColor: '#FFFFFF', // Fundo branco para cada seção
+    borderRadius: 10, // Bordas arredondadas
+    padding: 20,
+    marginBottom: 25, // Mais espaço entre as seções
+    shadowColor: '#000', // Sombra suave para elevação
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3, // Sombra para Android
   },
   iconRow: {
     flexDirection: 'row',
@@ -99,6 +142,7 @@ const styles = StyleSheet.create({
   techDescription: {
     fontSize: 16,
     fontFamily: 'Afacad-Regular',
-    color: '#374151',
+    color: '#495057', // Cor de texto geral, mais suave
+    lineHeight: 24, // Melhorar legibilidade
   },
 });

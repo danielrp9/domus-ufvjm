@@ -9,7 +9,7 @@ export default function CentralAjudaScreen() {
   return (
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.container}>
-        <Text style={styles.pageTitle}>Central de Ajuda</Text>
+      
 
         <View style={styles.faqSection}>
           <Text style={styles.faqTitle}>Perguntas Frequentes (FAQ)</Text>

@@ -26,7 +26,6 @@ export default function FormsSolicitarDocumento() {
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
       
       <View style={styles.titleContainer}>
-        <Text style={styles.pageTitle}>SOLICITAR DOCUMENTOS</Text>
         <Pressable onPress={() => router.push('/screens/discente/solicitar-documentos/historico-documentos')}>
         </Pressable>
       </View>
@@ -72,6 +71,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 50,
     backgroundColor: '#fff',
+    top: -29,
   },
   pageTitle: {
     fontSize: 40,

@@ -15,9 +15,7 @@ export default function ReservarPCs() {
 
   return (
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
-        <View style={styles.titleContainer}>
-            <Text style={styles.pageTitle}>RESERVA DE PC'S</Text>
-        </View>
+       
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
@@ -70,8 +68,8 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     backgroundColor: '#fFF',
-    paddingTop: 50,
-    paddingBottom: 40,
+    paddingTop: 30,
+    paddingBottom: 30,
   },
   titleContainer: {
     flexDirection: 'row',
@@ -94,8 +92,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 16,
-    marginBottom: 30,
+    paddingVertical: 9,
+    marginBottom: 32,
   },
   searchIcon: {
     marginRight: 8,
@@ -133,6 +131,10 @@ const styles = StyleSheet.create({
   bottomText:{
     alignSelf:'center',
     margin: 10,
-    textAlign: 'center'
+    textAlign: 'center',
+    marginTop: 10,
+    fontFamily: 'Afacad-Regular',
+    fontSize: 14,
+    color: '#888',
   }
 });

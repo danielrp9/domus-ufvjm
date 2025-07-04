@@ -1,18 +1,29 @@
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator, StatusBar, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../../../../app/context/AuthContext';
+import { createConsulta } from '../../../services/api';
+import { Ionicons } from '@expo/vector-icons';
 
+// Mock de dados para dias e horários disponíveis (se o backend não tiver um endpoint GET para isso)
 const diasDisponiveis = [
-  { id: 1, dia: '06/06/2025', horarios: ['09:00', '10:30', '14:00'] },
-  { id: 2, dia: '07/06/2025', horarios: ['08:00', '13:00', '15:30'] },
-  { id: 3, dia: '08/06/2025', horarios: ['10:00', '11:30', '16:00'] },
+  { id: 1, dia: '07/06/2025', horarios: ['09:00', '10:30', '12:30', '13:30', '14:30'] },
+  { id: 2, dia: '08/06/2025', horarios: ['08:00', '13:00', '15:30'] },
+  { id: 3, dia: '09/06/2025', horarios: ['10:00', '11:30', '16:00'] },
+  { id: 4, dia: '10/06/2025', horarios: ['10:00', '11:30', '16:00'] },
+  { id: 5, dia: '11/06/2025', horarios: ['10:00', '11:30', '16:00'] },
 ];
 
 export default function AgendamentoPsicologoScreen() {
-  const [diaSelecionado, setDiaSelecionado] = useState<number | null>(null);
+  const router = useRouter();
+  const { user, isLoggedIn } = useAuth();
+  
+  const [diaSelecionadoId, setDiaSelecionadoId] = useState<number | null>(null);
   const [horarioSelecionado, setHorarioSelecionado] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSelecionarDia = (id: number) => {
-    setDiaSelecionado(id);
+    setDiaSelecionadoId(id);
     setHorarioSelecionado(null);
   };
 
@@ -20,15 +31,82 @@ export default function AgendamentoPsicologoScreen() {
     setHorarioSelecionado(horario);
   };
 
-  const handleAgendar = () => {
-    const dia = diasDisponiveis.find(d => d.id === diaSelecionado)?.dia;
-    Alert.alert('Consulta agendada', `Você agendou para o dia ${dia} às ${horarioSelecionado}`);
+  const handleAgendar = async () => {
+    if (!diaSelecionadoId || !horarioSelecionado) {
+      Alert.alert('Erro', 'Por favor, selecione um dia e um horário.');
+      return;
+    }
+
+    if (!isLoggedIn || !user || !user.id) {
+      Alert.alert('Erro de Autenticação', 'Você precisa estar logado para agendar uma consulta.');
+      router.replace('/shared/login');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const diaObj = diasDisponiveis.find(d => d.id === diaSelecionadoId);
+      if (!diaObj) {
+        Alert.alert('Erro', 'Dia selecionado inválido.');
+        setLoading(false);
+        return;
+      }
+
+      const [dia, mes, ano] = diaObj.dia.split('/');
+      const [hora, minuto] = horarioSelecionado.split(':');
+      const horarioAPI = new Date(
+        Number(ano),
+        Number(mes) - 1,
+        Number(dia),
+        Number(hora),
+        Number(minuto),
+        0
+      ).toISOString();
+
+      const consultaData = {
+        user_id: user.id,
+        horario: horarioAPI,
+      };
+
+      console.log("AGENDAMENTO: Enviando dados para API:", consultaData);
+      const response = await createConsulta(consultaData);
+      console.log("AGENDAMENTO: Resposta da API:", response);
+
+      Alert.alert('Sucesso', `Consulta agendada para o dia ${diaObj.dia} às ${horarioSelecionado}. Status: ${response.status}.`);
+      
+      setDiaSelecionadoId(null);
+      setHorarioSelecionado(null);
+      router.back();
+    } catch (error: any) {
+      console.error("AGENDAMENTO: Erro ao agendar consulta:", error);
+      let errorMessage = 'Não foi possível agendar a consulta.';
+      if (error && error.detail) {
+        if (Array.isArray(error.detail)) {
+          errorMessage = 'Erros de Validação:\n' + error.detail.map((err: any) => `${err.loc.length > 1 ? err.loc[err.loc.length - 1] : 'campo'}: ${err.msg}`).join('\n');
+        } else {
+          errorMessage = `Erro da API: ${error.detail}`;
+        }
+      } else if (error.message) {
+        errorMessage = `Erro: ${error.message}`;
+      }
+      Alert.alert('Erro', errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleHistoricoPress = () => {
+    router.push('/screens/discente/solicitar-psicologo/historico-consultas');
+  };
+
+  const diaSelecionadoObj = diasDisponiveis.find(d => d.id === diaSelecionadoId);
 
   return (
     <ScrollView style={styles.scrollView}>
+      <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
-        <Text style={styles.pageTitle}>AGENDAR CONSULTA</Text>
+        {/* O header agora está completamente vazio, se não for mais usado */}
+        <View style={styles.header}></View>
 
         <Text style={styles.sectionTitle}>Selecione o dia:</Text>
         {diasDisponiveis.map((dia) => (
@@ -36,7 +114,7 @@ export default function AgendamentoPsicologoScreen() {
             key={dia.id}
             style={[
               styles.diaButton,
-              diaSelecionado === dia.id && styles.diaButtonSelecionado,
+              diaSelecionadoId === dia.id && styles.diaButtonSelecionado,
             ]}
             onPress={() => handleSelecionarDia(dia.id)}
           >
@@ -44,44 +122,53 @@ export default function AgendamentoPsicologoScreen() {
           </TouchableOpacity>
         ))}
 
-        {diaSelecionado && (
+        {diaSelecionadoId && diaSelecionadoObj && (
           <>
             <Text style={styles.sectionTitle}>Horários disponíveis:</Text>
             <View style={styles.horariosContainer}>
-              {diasDisponiveis
-                .find((dia) => dia.id === diaSelecionado)
-                ?.horarios.map((horario) => (
-                  <TouchableOpacity
-                    key={horario}
+              {diaSelecionadoObj.horarios.map((horario) => (
+                <TouchableOpacity
+                  key={horario}
+                  style={[
+                    styles.horarioButton,
+                    horarioSelecionado === horario && styles.horarioSelecionado,
+                  ]}
+                  onPress={() => handleSelecionarHorario(horario)}
+                >
+                  <Text
                     style={[
-                      styles.horarioButton,
-                      horarioSelecionado === horario && styles.horarioSelecionado,
+                      styles.horarioText,
+                      horarioSelecionado === horario && { color: '#fff' },
                     ]}
-                    onPress={() => handleSelecionarHorario(horario)}
                   >
-                    <Text
-                      style={[
-                        styles.horarioText,
-                        horarioSelecionado === horario && { color: '#fff' },
-                      ]}
-                    >
-                      {horario}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                    {horario}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </>
         )}
 
-        {diaSelecionado && horarioSelecionado && (
-          <TouchableOpacity style={styles.button} onPress={handleAgendar}>
-            <Text style={styles.buttonText}>Agendar</Text>
+        {/* --- NOVA SEÇÃO PARA O ÍCONE DE HISTÓRICO E TEXTO --- */}
+        <Pressable onPress={handleHistoricoPress} style={styles.historyLink}>
+          <Ionicons name="time-outline" size={20} color="#3355ce" />
+          <Text style={styles.historyText}>Meus Agendamentos</Text>
+        </Pressable>
+
+        {diaSelecionadoId && horarioSelecionado && (
+          <TouchableOpacity style={styles.button} onPress={handleAgendar} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Agendar</Text>
+            )}
           </TouchableOpacity>
         )}
       </View>
     </ScrollView>
   );
 }
+
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -93,12 +180,10 @@ const styles = StyleSheet.create({
     paddingTop: 50,
     paddingBottom: 40,
     backgroundColor: '#fff',
+    top: -33,
   },
-  pageTitle: {
-    fontSize: 40,
-    color: '#3355ce',
+  header: {
     marginBottom: 20,
-    fontFamily: 'BebasNeue-Regular',
   },
   sectionTitle: {
     fontSize: 18,
@@ -106,6 +191,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     color: '#333',
     fontFamily: 'Afacad-Regular',
+    top: -21,
   },
   diaButton: {
     padding: 12,
@@ -152,5 +238,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontFamily: 'Afacad-Regular',
+  },
+  // --- NOVOS ESTILOS PARA O LINK DE HISTÓRICO ---
+  historyLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // Centraliza horizontalmente
+    marginTop: 20, // Espaço acima dos horários
+    paddingVertical: 10, // Um pouco de padding para a área clicável
+  },
+  historyText: {
+    fontSize: 16,
+    color: '#3355ce', // Cor para o texto "Livre"
+    fontFamily: 'Afacad-Regular',
+    marginLeft: 8, // Espaçamento entre o ícone e o texto
   },
 });

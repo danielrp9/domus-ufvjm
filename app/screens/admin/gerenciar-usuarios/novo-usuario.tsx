@@ -1,7 +1,6 @@
 // C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\screens\admin\gerenciar-usuarios\novo-usuario.tsx
 
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts } from "expo-font";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -22,18 +21,12 @@ export default function AdicionarUsuario() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [fontsLoaded, fontError] = useFonts({
-    'Afacad-Regular': require('@/assets/fonts/Afacad-VariableFont_wght.ttf'),
-    'Afacad-Italic': require('@/assets/fonts/Afacad-Italic-VariableFont_wght.ttf'),
-    'BebasNeue-Regular': require('@/assets/fonts/BebasNeue-Regular.ttf'),
-  });
 
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
   };
 
   const handleCadastrar = async () => {
-    // Validação básica no frontend antes de enviar
     if (!formData.nome || !formData.email || !formData.password) {
       Alert.alert("Erro de Validação", "Nome, email e senha são obrigatórios.");
       return;
@@ -46,6 +39,11 @@ export default function AdicionarUsuario() {
         email: formData.email,
         password: formData.password,
         tipo: formData.tipo,
+        bloco: formData.bloco,
+        apartamento: formData.apartamento,
+        curso: formData.curso,
+        matricula: formData.matricula,
+        ano_de_entrada: formData.anoEntrada ? Number(formData.anoEntrada) : undefined,
       };
       
       const newUser = await createUser(userDataToSend);
@@ -62,28 +60,23 @@ export default function AdicionarUsuario() {
         anoEntrada: "",
       });
       router.back();
-    } catch (error: any) { // Captura o erro re-lançado
+    } catch (error: any) {
       console.error("Erro ao cadastrar usuário (handleCadastrar):", error);
       let errorMessage = "Não foi possível cadastrar o usuário. Verifique os dados.";
 
-      // --- MUDANÇA CRÍTICA AQUI ---
       if (error && Array.isArray(error.detail)) {
-        // Se o erro for uma lista de detalhes de validação (do Pydantic do FastAPI)
         const validationErrors = error.detail.map((err: any) => {
-          // err.loc é um array como ["body", "email"] ou ["body", "password"]
-          // Pega o nome do campo se disponível (último elemento de err.loc)
           const fieldName = err.loc.length > 1 ? err.loc[err.loc.length - 1] : 'desconhecido';
           return `Campo '${fieldName}': ${err.msg}`;
         }).join("\n");
         errorMessage = `Erros de Validação:\n${validationErrors}`;
       } else if (error && error.detail) {
-        // Se for um erro com um campo 'detail' geral (não uma lista de validação)
         errorMessage = `Erro: ${error.detail}`;
       } else if (error.message) {
-        // Para outros tipos de erros (ex: Network Error se ainda ocorrer)
         errorMessage = `Erro: ${error.message}`;
+      } else {
+          errorMessage = `Erro inesperado: ${JSON.stringify(error)}`;
       }
-      // --- FIM DA MUDANÇA CRÍTICA ---
 
       Alert.alert("Erro", errorMessage);
     } finally {
@@ -96,8 +89,7 @@ export default function AdicionarUsuario() {
       <Text style={styles.title}>Cadastrar Novo Usuário</Text>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Nome</Text>
-        <TextInput
+        <Text style={styles.label}>Nome</Text><TextInput 
           style={styles.input}
           onChangeText={(text) => handleChange("nome", text)}
           value={formData.nome}
@@ -106,8 +98,7 @@ export default function AdicionarUsuario() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
+        <Text style={styles.label}>E-mail</Text><TextInput 
           style={styles.input}
           onChangeText={(text) => handleChange("email", text)}
           value={formData.email}
@@ -117,8 +108,7 @@ export default function AdicionarUsuario() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
+        <Text style={styles.label}>Senha</Text><TextInput 
           style={styles.input}
           onChangeText={(text) => handleChange("password", text)}
           value={formData.password}
@@ -128,8 +118,7 @@ export default function AdicionarUsuario() {
       </View>
 
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>Tipo de Usuário</Text>
-        <TextInput
+        <Text style={styles.label}>Tipo de Usuário</Text><TextInput 
           style={styles.input}
           onChangeText={(text) => handleChange("tipo", text)}
           value={formData.tipo}
@@ -137,16 +126,14 @@ export default function AdicionarUsuario() {
         />
       </View>
 
-      <Text style={styles.label}>Bloco (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Bloco</Text><TextInput 
         style={styles.input}
         onChangeText={(text) => handleChange("bloco", text)}
         value={formData.bloco}
         placeholder="Digite o bloco"
       />
 
-      <Text style={styles.label}>Apartamento (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Apartamento</Text><TextInput 
         style={styles.input}
         onChangeText={(text) => handleChange("apartamento", text)}
         value={formData.apartamento}
@@ -154,16 +141,14 @@ export default function AdicionarUsuario() {
         keyboardType="numeric"
       />
 
-      <Text style={styles.label}>Curso (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Curso</Text><TextInput 
         style={styles.input}
         onChangeText={(text) => handleChange("curso", text)}
         value={formData.curso}
         placeholder="Digite o curso"
       />
 
-      <Text style={styles.label}>Matrícula (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Matrícula</Text><TextInput 
         style={styles.input}
         onChangeText={(text) => handleChange("matricula", text)}
         value={formData.matricula}
@@ -171,12 +156,11 @@ export default function AdicionarUsuario() {
         keyboardType="numeric"
       />
 
-      <Text style={styles.label}>Ano de Entrada (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Ano de Entrada</Text><TextInput 
         style={styles.input}
         onChangeText={(text) => handleChange("anoEntrada", text)}
         value={formData.anoEntrada}
-        placeholder="Digite o ano de entrada"
+        placeholder="Ano de Entrada"
         keyboardType="numeric"
       />
 
@@ -202,6 +186,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingBottom: 100, // <<<<< ADICIONADO: Espaço extra no final da rolagem
   },
   title: {
     fontSize: 40,

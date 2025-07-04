@@ -1,67 +1,99 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View, ActivityIndicator } from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { createManutencao } from '../../../services/api';
+import { useAuth } from '../../../../app/context/AuthContext';
 
-export default function FormsSolicitarManutencao() {
+export default function FormsManutencaoGenerica() {
   const router = useRouter();
+  const { type } = useLocalSearchParams();
+  const { user, isLoggedIn } = useAuth();
+  
+  const [descricao, setDescricao] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const manutencaoItems = [
-    { title: 'Manutenção Hidráulica', icon: 'water' },
-    { title: 'Manutenção de Internet', icon: 'wifi' },
-    { title: 'Manutenção Elétrica', icon: 'flash' },
-    { title: 'Manutenção Estrutural', icon: 'construct' },
-    { title: 'Manutenção em PCs', icon: 'desktop' },
-  ];
+  const handleSubmit = async () => {
+    if (!descricao.trim()) {
+      Alert.alert('Erro', 'Por favor, descreva o problema.');
+      return;
+    }
+
+    if (!isLoggedIn || !user || !user.id) {
+      Alert.alert('Erro de Autenticação', 'Você precisa estar logado para solicitar manutenção.');
+      router.replace('/shared/login');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const solicitacaoData = {
+        user_id: user.id,
+        descricao: `${type ? type + ': ' : ''}${descricao.trim()}`,
+      };
+      
+      console.log('MANUTENCAO_GENERICA: Enviando solicitação para API:', solicitacaoData);
+      const response = await createManutencao(solicitacaoData);
+      console.log('MANUTENCAO_GENERICA: Resposta da API:', response);
+
+      Alert.alert('Solicitação Enviada', `Sua solicitação de manutenção (ID: ${response.id}) foi registrada com status: ${response.status}.`);
+
+      setDescricao('');
+      router.back();
+    } catch (error: any) {
+      console.error("MANUTENCAO_GENERICA: Erro ao enviar solicitação:", error);
+      let errorMessage = 'Não foi possível enviar a solicitação de manutenção.';
+      if (error && error.detail) {
+        if (Array.isArray(error.detail)) {
+          errorMessage = 'Erros de Validação:\n' + error.detail.map((err: any) => `${err.loc.length > 1 ? err.loc[err.loc.length - 1] : 'campo'}: ${err.msg}`).join('\n');
+        } else {
+          errorMessage = `Erro da API: ${error.detail}`;
+        }
+      } else if (error.message) {
+        errorMessage = `Erro: ${error.message}`;
+      }
+      Alert.alert('Erro', errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleHistoricoPress = () => {
+    router.push('/screens/discente/solicitar-manutencao/historico-manutencao');
+  };
 
   return (
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
       
-      <View style={styles.titleContainer}>
-      <Text style={styles.pageTitle}>SOLICITAR MANUTENÇÃO</Text>
-      <Pressable onPress={() => router.push('/screens/discente/solicitar-manutencao/historico-manutencao')}>
-      </Pressable>
+      <View style={styles.subtitleContainer}>
+        <Ionicons name="build" size={24} color="#504A4A" style={styles.subtitleIcon} />
+        <Text style={styles.subtitle}>{type || 'Manutenção Geral'}</Text>
       </View>
 
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Pesquise alguma coisa..."
-          placeholderTextColor="#888"
-        />
+      <Text style={styles.label}>Descreva o problema:</Text>
+      <TextInput
+        style={[styles.input, styles.textArea]}
+        placeholder="Digite aqui..."
+        value={descricao}
+        onChangeText={setDescricao}
+        multiline
+        numberOfLines={4}
+        textAlignVertical="top"
+      />
+
+      <View style={styles.buttonContainer}>
+        <Pressable style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.submitText}>Enviar Solicitação</Text>
+          )}
+        </Pressable>
       </View>
 
-      <View style={styles.menuList}>
-        {manutencaoItems.map((item, index) => (
-          <Pressable key={index} style={styles.menuItem}
-            onPress={() => {
-              if (item.title === 'Manutenção Hidráulica') {
-                router.push('/screens/discente/solicitar-manutencao/formsManutencaoHidraulica');
-              } else if (item.title === 'Manutenção de Internet'){
-                router.push('/screens/discente/solicitar-manutencao/formsManutencaoInternet');
-              } else if (item.title === 'Manutenção Elétrica'){
-                router.push('/screens/discente/solicitar-manutencao/formsManutencaoEletrica');
-              } else if (item.title === 'Manutenção Estrutural'){
-                router.push('/screens/discente/solicitar-manutencao/formsManutencaoEstrutural');
-              } else if (item.title === 'Manutenção em PCs'){
-                router.push('/screens/discente/solicitar-manutencao/formsManutencaoPC');
-              }          
-              else {
-                console.log('Item pressionado:', item.title);
-              }
-            }} 
-            >
-            <View style={styles.iconContainer}>
-              <Ionicons name={item.icon as any} size={24} color="#3355ce" />
-            </View>
-            <Text style={styles.menuText}>{item.title}</Text>
-            <Ionicons name="chevron-forward" size={20} color="#888" />
-          </Pressable>
-        ))}
-      </View>
-
-      <Pressable style={styles.historyButton} onPress={() => router.push('/screens/discente/solicitar-manutencao/historico-manutencao')}>
-        <Text style={styles.historyText}>Ver Histórico de Manutenções</Text>
+      <Pressable onPress={handleHistoricoPress} style={styles.historyLink}>
+        <Ionicons name="time-outline" size={20} color="#3355ce" />
+        <Text style={styles.historyText}>Histórico de Solicitação</Text>
       </Pressable>
 
     </ScrollView>
@@ -71,86 +103,83 @@ export default function FormsSolicitarManutencao() {
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
-    backgroundColor: '#fFF',
+    backgroundColor: '#fff',
   },
   container: {
     padding: 20,
-    backgroundColor: '#fFF',
     paddingTop: 50,
-    paddingBottom: 40,
+    backgroundColor: '#fff',
   },
-  pageTitle: {
-    fontSize: 40,
-    color: '#3355ce',
-    fontFamily: 'BebasNeue-Regular',
-  },
-  titleContainer: {
+  subtitleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 10,
-    marginBottom: 20,
+    marginBottom: 30,
+    alignSelf: 'center', 
   },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 16,
-    marginBottom: 20,
+  subtitleIcon: {
+    marginRight: 10,
+    top: -15,
   },
-  searchIcon: {
-    marginRight: 8,
-  },
-  titleIcon: {
-    marginBottom:5,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
+  subtitle: {
+    fontSize: 20,
+    color: '#504A4A',
+    top: -15,
     fontFamily: 'Afacad-Regular',
   },
-  menuList: {
-    gap: 12,
+  label: {
+    fontSize: 16,
+    color: '#000000',
+    marginBottom: 8,
+    fontFamily: 'Afacad-Regular',
+    alignSelf: 'center', 
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  input: {
     backgroundColor: '#f0f0f0',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    fontSize: 16,
+    marginBottom: 20,
+    fontFamily: 'Afacad-Regular',
+    color: '#504A4A',
   },
-  iconContainer: {
-    backgroundColor: '#FFF',
-    width: 40,
-    height: 40,
+  textArea: {
+    height: 250,
+    textAlignVertical: 'top',
+  },
+  buttonContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  submitButton: {
+    backgroundColor: '#3355ce',
     borderRadius: 20,
-    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 30,
+    width: '70%',
     alignItems: 'center',
-    marginRight: 16,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
   },
-  menuText: {
-    flex: 1,
+  submitText: {
+    color: '#fff',
     fontSize: 16,
-    color: '#374151',
     fontFamily: 'Afacad-Regular',
   },
-    historyButton: {
+  historyLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
     justifyContent: 'center',
-    marginTop: 30,
+    marginTop: 20,
+    paddingVertical: 10,
   },
   historyText: {
-    color: '#888',
     fontSize: 16,
+    color: '#3355ce',
     fontFamily: 'Afacad-Regular',
+    marginLeft: 8,
   },
-
 });

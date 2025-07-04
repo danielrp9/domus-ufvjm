@@ -18,7 +18,6 @@ export default function EditarUsuario() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
 
-  // Inicializa formData vazio, será preenchido após carregar o usuário
   const [formData, setFormData] = useState({
     nome: "",
     email: "",
@@ -26,13 +25,13 @@ export default function EditarUsuario() {
     apartamento: "",
     curso: "",
     matricula: "",
-    anoEntrada: "",
+    anoEntrada: "", // String para TextInput
   });
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [currentUser, setCurrentUser] = useState<UserAPI | null>(null); // Armazena o usuário original
+  const [currentUser, setCurrentUser] = useState<UserAPI | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -53,25 +52,22 @@ export default function EditarUsuario() {
         }
 
         try {
-          const user = await getUserById(userId);
-          console.log("DEBUG EDIT: useEffect: Dados do utilizador recebidos da API:", user);
+          const user = await getUserById(userId); // Busca o utilizador da API
+          console.log("DEBUG EDIT: useEffect: Dados do utilizador recebidos da API (user object):", user);
           
-          setCurrentUser(user); // Define o usuário original
+          setCurrentUser(user);
 
-          // --- MUDANÇA CRÍTICA AQUI: Preencher formData COMPLETAMENTE com base no usuário da API ---
           setFormData({
             nome: user.nome || "",
             email: user.email || "",
-            // Para campos locais, se não vêm da API, inicialize-os vazios para não causar erro
-            bloco: "", 
-            apartamento: "",
-            curso: "",
-            matricula: "",
-            anoEntrada: "",
+            bloco: user.bloco || "",
+            apartamento: user.apartamento || "",
+            curso: user.curso || "",
+            matricula: user.matricula || "",
+            anoEntrada: user.ano_de_entrada ? String(user.ano_de_entrada) : "",
           });
-          // --- FIM DA MUDANÇA CRÍTICA ---
 
-          console.log("DEBUG EDIT: useEffect: setFormData chamado com dados da API."); 
+          console.log("DEBUG EDIT: useEffect: formData preenchido (pode não refletir imediatamente no log):", formData); 
 
         } catch (err: any) {
           console.error("DEBUG EDIT: useEffect: Erro ao buscar utilizador para edição:", err);
@@ -113,20 +109,18 @@ export default function EditarUsuario() {
       const dataToUpdate = {
         nome: formData.nome,
         email: formData.email,
+        bloco: formData.bloco,
+        apartamento: formData.apartamento,
+        curso: formData.curso,
+        matricula: formData.matricula,
+        ano_de_entrada: formData.anoEntrada ? Number(formData.anoEntrada) : undefined,
       };
       console.log("DEBUG EDIT: handleSave: Enviando dados para PUT:", dataToUpdate);
       const updatedUser = await updateUser(userId, dataToUpdate);
       console.log("DEBUG EDIT: handleSave: Utilizador atualizado no backend:", updatedUser);
       Alert.alert("Sucesso", "Dados atualizados com sucesso!");
       
-      // --- MUDANÇA CRÍTICA AQUI: Recarregar a rota da lista de usuários ---
-      // Em vez de router.back(), que pode usar cache, use replace para forçar um novo GET
       router.replace('/screens/admin/gerenciar-usuarios'); 
-      // Ou, se você só quer voltar e a lista atualizar, use um Context API ou Event Emitter
-      // para notificar a tela da lista sobre a alteração. Por agora, 'replace' é mais simples.
-      // Ou, se a lista sempre é recarregada ao entrar, router.back() funcionaria se não fosse o cache.
-      // Vamos tentar router.replace primeiro.
-      // --- FIM DA MUDANÇA CRÍTICA ---
 
     } catch (err) {
       console.error("DEBUG EDIT: Erro ao guardar alterações:", err);
@@ -156,7 +150,7 @@ export default function EditarUsuario() {
     );
   }
 
-  if (!currentUser) { // Se não há usuário, não renderize o formulário
+  if (!currentUser) {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>Erro: Não foi possível carregar os dados do utilizador para edição.</Text>
@@ -172,58 +166,62 @@ export default function EditarUsuario() {
       <Text style={styles.title}>Editar Utilizador</Text>
 
       <Text style={styles.label}>Nome</Text>
-      <TextInput
+      <TextInput 
         style={styles.input}
-        key={currentUser.id + '-name-input'} // Chave única para forçar re-renderização
+        key={currentUser.id + '-name-input'}
         value={formData.nome}
         onChangeText={(text) => handleChange("nome", text)}
         placeholder="Nome"
       />
 
       <Text style={styles.label}>E-mail</Text>
-      <TextInput
+      <TextInput 
         style={styles.input}
-        key={currentUser.id + '-email-input'} // Chave única para forçar re-renderização
+        key={currentUser.id + '-email-input'}
         value={formData.email}
         onChangeText={(text) => handleChange("email", text)}
         placeholder="E-mail"
         keyboardType="email-address"
       />
 
-      {/* Campos locais que não são enviados à API */}
-      <Text style={styles.label}>Bloco (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Bloco</Text>
+      <TextInput 
         style={styles.input}
+        key={currentUser.id + '-bloco-input'}
         value={formData.bloco}
         onChangeText={(text) => handleChange("bloco", text)}
         placeholder="Bloco"
       />
-      <Text style={styles.label}>Apartamento (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Apartamento</Text>
+      <TextInput 
         style={styles.input}
+        key={currentUser.id + '-apartamento-input'}
         value={formData.apartamento}
         onChangeText={(text) => handleChange("apartamento", text)}
         placeholder="Apartamento"
         keyboardType="numeric"
       />
-      <Text style={styles.label}>Curso (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Curso</Text>
+      <TextInput 
         style={styles.input}
+        key={currentUser.id + '-curso-input'}
         value={formData.curso}
         onChangeText={(text) => handleChange("curso", text)}
         placeholder="Curso"
       />
-      <Text style={styles.label}>Matrícula (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Matrícula</Text>
+      <TextInput 
         style={styles.input}
+        key={currentUser.id + '-matricula-input'}
         value={formData.matricula}
         onChangeText={(text) => handleChange("matricula", text)}
         placeholder="Matrícula"
         keyboardType="numeric"
       />
-      <Text style={styles.label}>Ano de Entrada (Local - Não enviado à API)</Text>
-      <TextInput
+      <Text style={styles.label}>Ano de Entrada</Text>
+      <TextInput 
         style={styles.input}
+        key={currentUser.id + '-anoEntrada-input'}
         value={formData.anoEntrada}
         onChangeText={(text) => handleChange("anoEntrada", text)}
         placeholder="Ano de Entrada"
@@ -275,6 +273,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontFamily: 'BebasNeue-Regular',
     color: '#3355ce',
+    top: 29,
   },
   label: {
     fontSize: 16,

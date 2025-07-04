@@ -45,9 +45,6 @@ export default function OnibusScreen() {
       <View style={styles.container} onLayout={onLayoutRootView}>
         <StatusBar barStyle="dark-content" />
         
-        <View style={styles.header}>
-          <Text style={styles.pageTitle}>HORÁRIO DO ÔNIBUS</Text>
-        </View>
 
         <View style={styles.tableContainer}>
           {/* Cabeçalho da tabela */}
@@ -65,7 +62,7 @@ export default function OnibusScreen() {
           ))}
         </View>
 
-        <Text style={styles.updateText}>Tabela atualizada em 16/08/2024</Text>
+        <Text style={styles.updateText}>Tabela atualizada em 06/07/2025</Text>
       </View>
     </ScrollView>
   );

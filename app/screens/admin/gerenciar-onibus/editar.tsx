@@ -36,7 +36,8 @@ export default function EditarHorariosOnibus() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>EDITAR HORÁRIOS</Text>
+        <Text style={styles.title}>Clique nos Horários para Editar</Text>
+
 
         <View style={styles.grid}>
           {horariosIda.map((item, index) => (
@@ -77,13 +78,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     justifyContent: 'flex-start',
     fontFamily: 'Afacad-Regular',
+    top: -32,
   },
   title: {
-    fontSize: 40,
-    color: '#3355ce',
+  
     textAlign: 'center',
     margin: 30,
     fontFamily: 'BebasNeue-Regular',
+    top: -40,
   },
   grid: {
     flexDirection: 'row',

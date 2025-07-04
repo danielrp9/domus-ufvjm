@@ -4,14 +4,17 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useCallback } from 'react';
 import { Image, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 SplashScreen.preventAutoHideAsync();
 
-export default function HomeScreen() { // O nome da função pode ser HomeScreen ou IndexScreen
+export default function HomeScreen() {
+  const router = useRouter();
+  
   const [fontsLoaded, fontError] = useFonts({
     'Afacad-Regular': require('@/assets/fonts/Afacad-VariableFont_wght.ttf'),
     'Afacad-Italic': require('@/assets/fonts/Afacad-Italic-VariableFont_wght.ttf'),
-    'Angkor-Regular': require('@/assets/fonts/Angkor-Regular.ttf'), // Adicione esta fonte se existir
+    'Angkor-Regular': require('@/assets/fonts/Angkor-Regular.ttf'),
     'BebasNeue-Regular': require('@/assets/fonts/BebasNeue-Regular.ttf'),
   });
 
@@ -25,6 +28,10 @@ export default function HomeScreen() { // O nome da função pode ser HomeScreen
     return null;
   }
 
+  const handleOpenAlerts = () => {
+    router.push('/shared/alertas');
+  };
+
   return (
     <ScrollView 
       style={styles.scrollView}
@@ -36,12 +43,10 @@ export default function HomeScreen() { // O nome da função pode ser HomeScreen
         
         <View style={styles.header}>
           <Text style={styles.pageTitle}>MEU</Text>
-          <Pressable onPress={() => console.log('Notificações pressionadas')}>
+          <Pressable onPress={handleOpenAlerts}>
             <Image
               source={require('@/assets/images/icons/sino.png')}
               style={styles.notificationIcon}
-              // Para 'tintColor', use a propriedade 'tintColor' diretamente
-              // tintColor: '#3355ce'
             />
             <View style={styles.notificationBadge} />
           </Pressable>
@@ -52,8 +57,6 @@ export default function HomeScreen() { // O nome da função pode ser HomeScreen
             <Image
               source={require('@/assets/images/icons/lupa.png')}
               style={styles.searchIcon}
-              // Para 'tintColor', use a propriedade 'tintColor' diretamente
-              // tintColor: '#888'
             />
             <TextInput
               placeholder="Buscar..."

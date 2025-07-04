@@ -19,13 +19,14 @@ export default function MenuAdmin() {
   const router = useRouter();
 
   const menuItems: MenuItem[] = [
+    { title: 'Publicar Alertas', icon: 'notifications' },
     { title: 'Gerenciar Usuários', icon: 'person-circle-outline' },
     { title: 'Gerenciar Manutenção', icon: 'build' },
-    { title: 'Gerenciar Horários Ônibus', icon: 'bus' },
+    { title: 'Gerenciar Consultas', icon: 'calendar' },
     { title: "Gerenciar Horários PC's", icon: 'desktop-outline' },
+    { title: 'Gerenciar Horários Ônibus', icon: 'bus' },
     { title: 'Enviar Comprovante', icon: 'document-text' },
     { title: 'Publicar Documentos', icon: 'document-text' },
-    { title: 'Publicar Alertas', icon: 'notifications' },
   ];
 
   return (
@@ -58,6 +59,8 @@ export default function MenuAdmin() {
                 router.push('/screens/admin/publicar-documentos');
               } else if (item.title === 'Publicar Alertas') {
                 router.push('/screens/admin/publicar-alertas');
+              } else if (item.title === 'Gerenciar Consultas') { 
+                router.push('/screens/admin/gerenciar-consultas');
               } else {
                 console.log('Item pressionado:', item.title);
               }

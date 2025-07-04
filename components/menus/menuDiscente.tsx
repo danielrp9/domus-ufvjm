@@ -19,12 +19,13 @@ export default function MenuDiscente() {
   const router = useRouter();
 
   const menuItems: MenuItem[] = [
-    { title: 'Solicitar Documentos', icon: 'document-text' },
+    { title: 'Solicitar Psicólogo', icon: 'flower-outline' },
     { title: 'Solicitar Manutenção', icon: 'build' },
+    { title: 'Ver Alertas', icon: 'notifications' },
     { title: 'Horários do Ônibus', icon: 'bus' },
     { title: 'Agendar Computador', icon: 'desktop-outline' },
-    { title: 'Solicitar Psicólogo', icon: 'flower-outline' },
-    { title: 'Ver Alertas', icon: 'notifications' },
+    { title: 'Solicitar Documentos', icon: 'document-text' },
+    
   ];
 
   return (

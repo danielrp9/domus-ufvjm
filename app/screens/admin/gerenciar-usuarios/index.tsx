@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     paddingTop: 50,
+     top: -27,
   },
   loadingContainer: {
     flex: 1,
@@ -293,12 +294,12 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 40,
     color: '#3355ce',
-    top: 32,
-    fontFamily: 'BebasNeue-Regular'
+    fontFamily: 'BebasNeue-Regular',
+    top: 49,
   },
   addButton: {
     padding: 10,
-    top: 32
+    top: 49,
   },
   searchContainer: {
     flexDirection: 'row',

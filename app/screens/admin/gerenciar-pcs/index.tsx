@@ -38,9 +38,7 @@ export default function ReservarPCs() {
 
   return (
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
-        <View style={styles.titleContainer}>
-            <Text style={styles.pageTitle}>PC'S</Text>
-        </View>
+       
 
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
@@ -113,6 +111,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingBottom:10,
     marginBottom: 20,
+    top: -20,
   },
   pageTitle: {
     fontSize: 40,
@@ -128,8 +127,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 16,
-    marginBottom: 30,
+    paddingVertical: 9, 
+    marginBottom: 8,
+    top: -26,
   },
   searchIcon: {
     marginRight: 8,

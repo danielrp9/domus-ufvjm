@@ -1,38 +1,48 @@
-// C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\screens\discente\solicitar-manutencao\historico-manutencao.tsx
+// C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\screens\discente\solicitar-psicologo\historico-consultas.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollView, StyleSheet, Text, View, ActivityIndicator, Alert, StatusBar, TouchableOpacity, Pressable } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-// Importa as funções da API para manutenções E para usuários
-import { getManutencoesByUserId, getUserById, ManutencaoAPI, UserAPI } from '../../../services/api'; 
+// Importa as funções da API para consultas E para usuários
+import { getConsultasByUserId, getUserById, ConsultaResponse, UserAPI } from '../../../services/api'; 
 import { useAuth } from '../../../../app/context/AuthContext';
 
-export default function HistoricoManutencaoScreen() {
+export default function HistoricoConsultasScreen() {
   const { user, isLoggedIn } = useAuth();
   
-  const [solicitacoes, setSolicitacoes] = useState<ManutencaoAPI[]>([]);
+  const [consultas, setConsultas] = useState<ConsultaResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // NOVO: Estado para armazenar dados dos utilizadores (cache)
   const [usersCache, setUsersCache] = useState<{ [key: number]: UserAPI }>({}); 
 
-  // Função para buscar as solicitações do utilizador logado
-  const fetchUserSolicitacoes = useCallback(async () => {
+  // Função para buscar as consultas do utilizador logado
+  const fetchUserConsultas = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     if (!isLoggedIn || !user || !user.id) {
-      setError("Você precisa estar logado para ver o histórico.");
+      setError("Você precisa estar logado para ver o histórico de consultas.");
       setLoading(false);
       return;
     }
 
     try {
-      const data = await getManutencoesByUserId(user.id); // API call com user.id
-      setSolicitacoes(data);
-      console.log("DISCENTE: Histórico de manutenções carregado:", data); // DEBUG
+      const data = await getConsultasByUserId(user.id); // API call com user.id
+      // Ordenar as consultas por horário (mais recente primeiro)
+      const sortedData = data.sort((a: ConsultaResponse, b: ConsultaResponse) => {
+        return new Date(b.horario).getTime() - new Date(a.horario).getTime();
+      });
+      setConsultas(sortedData);
+      console.log("DISCENTE: Histórico de consultas carregado:", sortedData); // DEBUG
+
+      // NOVO: Buscar dados do utilizador logado (já temos no AuthContext, mas para outros usuários se necessário)
+      // Para esta tela, o user logado já está em `user` do `useAuth()`.
+      // Mas se quisermos exibir de outros usuários (caso a API retornasse user_id de outros),
+      // a lógica de usersCache seria útil. Para o histórico do próprio usuário, é mais simples.
       
+      // Se a API getConsultasByUserId não retorna nome/email, e queremos exibir o do próprio usuário:
       const newUsersCache: { [key: number]: UserAPI } = { ...usersCache };
       if (user && user.id && !newUsersCache[user.id]) {
         newUsersCache[user.id] = user; // Adiciona o próprio utilizador à cache
@@ -41,8 +51,8 @@ export default function HistoricoManutencaoScreen() {
       console.log("DISCENTE: Cache de utilizadores atualizada:", newUsersCache); // DEBUG
 
     } catch (err: any) {
-      console.error("DISCENTE: Erro ao carregar histórico:", err);
-      let errorMessage = "Não foi possível carregar o histórico de manutenções.";
+      console.error("DISCENTE: Erro ao carregar histórico de consultas:", err);
+      let errorMessage = "Não foi possível carregar o histórico de consultas.";
       if (err.response) {
         if (err.response.data && err.response.data.detail) {
           errorMessage = `Erro da API: ${err.response.data.detail}`;
@@ -60,31 +70,32 @@ export default function HistoricoManutencaoScreen() {
     }
   }, [user, isLoggedIn, usersCache]); // usersCache como dependência
 
-  // Carrega as solicitações na montagem do componente E quando a tela for focada
   useFocusEffect(
     useCallback(() => {
-      fetchUserSolicitacoes();
-      return () => {}; // Cleanup function
-    }, [fetchUserSolicitacoes])
+      fetchUserConsultas();
+      return () => {};
+    }, [fetchUserConsultas])
   );
 
-  // Função auxiliar para retornar cor do status
-  const getStatusStyle = (status: string) => {
-    let color = '#333';
+  const getStatusColorConsulta = (status: string) => {
     switch (status) {
-      case 'Concluído': color = '#28a745'; break;
-      case 'Em andamento': color = '#ffc107'; break;
-      case 'Pendente': color = '#007bff'; break;
-      case 'Cancelado': color = '#dc3545'; break;
+      case 'Concluída': return '#28a745';
+      case 'Agendada': return '#007bff';
+      case 'Cancelada': return '#dc3545';
+      default: return '#ccc';
     }
-    return { color };
   };
 
-  if (loading && solicitacoes.length === 0) {
+  const formatarDataHora = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleString('pt-BR');
+  };
+
+  if (loading && consultas.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3355ce" />
-        <Text style={styles.loadingText}>A carregar histórico...</Text>
+        <Text style={styles.loadingText}>A carregar histórico de consultas...</Text>
       </View>
     );
   }
@@ -93,7 +104,7 @@ export default function HistoricoManutencaoScreen() {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchUserSolicitacoes}>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchUserConsultas}>
           <Text style={styles.retryButtonText}>Tentar Novamente</Text>
         </TouchableOpacity>
       </View>
@@ -105,34 +116,37 @@ export default function HistoricoManutencaoScreen() {
       <StatusBar barStyle="dark-content" />
       <View style={styles.container}>
 
-        {solicitacoes.length === 0 ? (
-          <Text style={styles.noSolicitacoesText}>Nenhuma solicitação de manutenção encontrada para este utilizador.</Text>
+        {consultas.length === 0 ? (
+          <Text style={styles.noConsultasText}>Nenhuma consulta agendada encontrada.</Text>
         ) : (
-          solicitacoes.map((item) => {
+          consultas.map((item) => {
             const userDetails = usersCache[item.user_id]; // Obtém os detalhes do utilizador da cache
             return (
               <View key={item.id} style={styles.card}>
-                <Ionicons name="construct" size={24} color="#3355ce" style={styles.icon} />
+                <Ionicons name="calendar-outline" size={24} color="#3355ce" style={styles.icon} />
                 <View style={styles.cardContent}>
-                  <Text style={styles.tipo}>{item.tipo_solicitacao}</Text>
-                  <Text style={styles.detalhes}>Descrição: {item.descricao}</Text>
-                  <Text style={styles.detalhes}>ID da Solicitação: {item.id}</Text>
+                  <Text style={styles.cardText}>
+                    <Text style={styles.label}>ID da Consulta:</Text> {item.id}
+                  </Text>
                   {userDetails ? ( // Exibe nome e email se disponível
                     <>
-                      <Text style={styles.detalhes}>
-                        <Text style={styles.label}>Solicitante:</Text> {userDetails.nome}
+                      <Text style={styles.cardText}>
+                        <Text style={styles.label}>Nome:</Text> {userDetails.nome}
                       </Text>
-                      <Text style={styles.detalhes}>
+                      <Text style={styles.cardText}>
                         <Text style={styles.label}>Email:</Text> {userDetails.email}
                       </Text>
                     </>
                   ) : ( // Caso contrário, exibe apenas o User ID
-                    <Text style={styles.detalhes}>
+                    <Text style={styles.cardText}>
                       <Text style={styles.label}>User ID:</Text> {item.user_id}
                     </Text>
                   )}
-                  <Text style={[styles.detalhes, getStatusStyle(item.status)]}>
-                    Status: {item.status}
+                  <Text style={styles.cardText}>
+                    <Text style={styles.label}>Horário:</Text> {formatarDataHora(item.horario)}
+                  </Text>
+                  <Text style={[styles.cardText, { color: getStatusColorConsulta(item.status) }]}>
+                    <Text style={styles.label}>Status:</Text> {item.status}
                   </Text>
                 </View>
               </View>
@@ -211,24 +225,18 @@ const styles = StyleSheet.create({
   cardContent: {
     flex: 1,
   },
-  tipo: {
+  cardText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#374151',
-    marginBottom: 4,
+    color: '#504A4A',
     fontFamily: 'Afacad-Regular',
-  },
-  detalhes: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontFamily: 'Afacad-Regular',
+    marginBottom: 5,
   },
   label: {
     fontWeight: 'bold',
     color: '#333',
     marginRight: 5,
   },
-  noSolicitacoesText: {
+  noConsultasText: {
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16,

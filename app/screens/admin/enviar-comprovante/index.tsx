@@ -136,13 +136,16 @@ const styles = StyleSheet.create({
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40,
   },
   header: {
+    justifyContent: 'center', // Centraliza horizontalmente
+    alignItems: 'center',    // Centraliza verticalmente
     marginBottom: 30,
+
   },
   pageTitle: {
     fontSize: 40,
     color: '#3355ce',
     fontFamily: 'BebasNeue-Regular',
-    top: 32
+    top: 39,
   },
   formContainer: {
     top: 32,

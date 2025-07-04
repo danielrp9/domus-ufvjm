@@ -46,9 +46,6 @@ export default function OnibusScreen() {
       <View style={styles.container} onLayout={onLayoutRootView}>
         <StatusBar barStyle="dark-content" />
         
-        <View style={styles.header}>
-          <Text style={styles.pageTitle}>HORÁRIO DO ÔNIBUS</Text>
-        </View>
 
         <View style={styles.tableContainer}>
           {/* Cabeçalho da tabela */}
@@ -99,8 +96,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 40,
   },
-  header: {
+ header: {
+    justifyContent: 'center', // Centraliza horizontalmente
+    alignItems: 'center',    // Centraliza verticalmente
     marginBottom: 30,
+
   },
   pageTitle: {
     fontSize: 40,

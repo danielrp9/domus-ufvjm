@@ -77,8 +77,7 @@ const handleDeleteHorario = (pcId: number, index: number) => {
 
   return (
     <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Editar PC's</Text>
-
+  
       <View style={styles.newPCContainer}>
         <TextInput
           style={styles.input}

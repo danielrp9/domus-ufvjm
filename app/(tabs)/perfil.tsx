@@ -1,11 +1,13 @@
+// C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\(tabs)\perfil.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import React from 'react';
-import { Image, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { Image, Pressable, ScrollView, StatusBar, StyleSheet, Text, View, ActivityIndicator } from 'react-native';
+import { useAuth } from '../context/AuthContext'; // <<<<< CAMINHO CORRIGIDO AQUI >>>>>
 
-SplashScreen.preventAutoHideAsync();
-
+// Componente auxiliar para exibir itens do perfil
 function ProfileItem({
   icon,
   label,
@@ -14,9 +16,11 @@ function ProfileItem({
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   label: string;
-  value?: string;
+  value?: string | number | null;
   onPress?: () => void;
 }) {
+  const displayValue = value !== null && value !== undefined ? String(value) : '-';
+
   if (onPress) {
     return (
       <Pressable
@@ -29,7 +33,7 @@ function ProfileItem({
           </View>
           <View style={styles.textContainer}>
             <Text style={styles.itemText}>{label}</Text>
-            {value && <Text style={styles.itemValue}>{value}</Text>}
+            {displayValue && displayValue !== '-' && <Text style={styles.itemValue}>{displayValue}</Text>}
           </View>
         </View>
       </Pressable>
@@ -44,7 +48,7 @@ function ProfileItem({
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.itemText}>{label}</Text>
-          {value && <Text style={styles.itemValue}>{value}</Text>}
+          {displayValue && displayValue !== '-' && <Text style={styles.itemValue}>{displayValue}</Text>}
         </View>
       </View>
     </View>
@@ -52,33 +56,30 @@ function ProfileItem({
 }
 
 export default function ProfileScreen() {
-  const [fontsLoaded] = useFonts({
+  const { user, isLoading, isLoggedIn } = useAuth();
+  
+  const [fontsLoaded, fontError] = useFonts({
     'Afacad-Regular': require('@/assets/fonts/Afacad-VariableFont_wght.ttf'),
     'BebasNeue-Regular': require('@/assets/fonts/BebasNeue-Regular.ttf'),
   });
 
-  const onLayoutRootView = React.useCallback(async () => {
-    if (fontsLoaded) {
-      await SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
+  useEffect(() => {
+    if (fontError) throw fontError;
+  }, [fontError]);
 
   if (!fontsLoaded) {
     return null;
   }
 
-  const user = {
-    name: 'Daniel Rodrigues Pereira',
-    email: 'daniel.pereira@ufvjm.edu.br',
-    matricula: '2023123456',
-    anoEntrada: '2023',
-    previsaoSaida: '2027',
-    bloco: '2',
-    apartamento: '305',
-    curso: 'Sistemas de Informação',
-    telefone: '(38) 99999-9999',
-    status: 'Ativo',
-  };
+  if (isLoading || !isLoggedIn || !user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3355ce" />
+        <Text style={styles.loadingText}>A carregar perfil...</Text>
+        {!isLoggedIn && !isLoading && <Text style={styles.loadingText}>Utilizador não logado.</Text>}
+      </View>
+    );
+  }
 
   const profileGroups = [
     {
@@ -86,8 +87,7 @@ export default function ProfileScreen() {
       items: [
         { icon: 'id-card', label: 'Matrícula', value: user.matricula },
         { icon: 'school', label: 'Curso', value: user.curso },
-        { icon: 'calendar', label: 'Ano de Entrada', value: user.anoEntrada },
-        { icon: 'exit', label: 'Previsão de Saída', value: user.previsaoSaida },
+        { icon: 'calendar', label: 'Ano de Entrada', value: user.ano_de_entrada },
       ],
     },
     {
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
       contentContainerStyle={styles.scrollViewContent}
       showsVerticalScrollIndicator={false}
     >
-      <View style={styles.container} onLayout={onLayoutRootView}>
+      <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
 
         <View style={styles.header}>
@@ -120,9 +120,9 @@ export default function ProfileScreen() {
             />
             <View style={styles.statusIndicator} />
           </View>
-          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userName}>{user.nome}</Text>
           <Text style={styles.userEmail}>{user.email}</Text>
-          <Text style={styles.userStatus}>{user.status}</Text>
+          <Text style={styles.userStatus}>{user.tipo}</Text>
         </View>
 
         {profileGroups.map((group, groupIndex) => (
@@ -282,5 +282,16 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontFamily: 'Afacad-Regular',
     marginTop: 2,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'white',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    fontFamily: 'Afacad-Regular',
   },
 });

@@ -1,4 +1,4 @@
-// C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\screens\admin\gerenciar-manutencao\index.tsx
+// C:\Users\danie\OneDrive\Área de Trabalho\domus-ufvjm\domus-ufvjm\app\screens\admin\gerenciar-consultas\index.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
 import {
@@ -14,30 +14,30 @@ import {
 import { useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-// Importa as funções da API para manutenções E para usuários
-import { getManutencoes, updateManutencaoStatus, getUserById, ManutencaoAPI, UserAPI } from '../../../services/api'; 
+// Importa as funções da API para consultas E para usuários
+import { getConsultas, getUserById, ConsultaResponse, UserAPI } from '../../../services/api'; 
 
-// Tipos de status para exibição
-const tiposStatus = ['Pendente', 'Em andamento', 'Concluído', 'Cancelado'];
+// Tipos de status para exibição (ajuste conforme os status reais das suas consultas)
+const tiposStatusConsulta = ['Agendada', 'Concluída', 'Cancelada']; // Exemplo
 
-const GerenciarManutencoesScreen = () => {
-  const [solicitacoes, setSolicitacoes] = useState<ManutencaoAPI[]>([]);
+const GerenciarConsultasScreen = () => {
+  const [consultas, setConsultas] = useState<ConsultaResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   // NOVO: Estado para armazenar dados dos utilizadores (cache)
   const [usersCache, setUsersCache] = useState<{ [key: number]: UserAPI }>({}); 
 
-  // Função para buscar todas as solicitações de manutenção
-  const fetchSolicitacoes = useCallback(async () => {
+  // Função para buscar todas as consultas
+  const fetchConsultas = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getManutencoes(); // API call
-      setSolicitacoes(data);
-      console.log("ADMIN: Manutenções carregadas:", data); // DEBUG
+      const data = await getConsultas(); // API call: GET /solicitacoes/consultas
+      setConsultas(data);
+      console.log("ADMIN: Consultas carregadas:", data); // DEBUG
 
-      // NOVO: Buscar dados dos utilizadores para cada solicitação
-      const userIdsToFetch = Array.from(new Set(data.map(s => s.user_id))); // IDs únicos
+      // NOVO: Buscar dados dos utilizadores para cada consulta
+      const userIdsToFetch = Array.from(new Set(data.map(c => c.user_id))); // IDs únicos
       const newUsersCache: { [key: number]: UserAPI } = { ...usersCache };
       
       for (const userId of userIdsToFetch) {
@@ -56,8 +56,8 @@ const GerenciarManutencoesScreen = () => {
       console.log("ADMIN: Cache de utilizadores atualizada:", newUsersCache); // DEBUG
 
     } catch (err: any) {
-      console.error("ADMIN: Erro ao carregar manutenções:", err);
-      let errorMessage = "Não foi possível carregar as solicitações de manutenção.";
+      console.error("ADMIN: Erro ao carregar consultas:", err);
+      let errorMessage = "Não foi possível carregar as consultas.";
       if (err.response) {
         if (err.response.data && err.response.data.detail) {
           errorMessage = `Erro da API: ${err.response.data.detail}`;
@@ -77,21 +77,21 @@ const GerenciarManutencoesScreen = () => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchSolicitacoes();
+      fetchConsultas();
       return () => {};
-    }, [fetchSolicitacoes])
+    }, [fetchConsultas])
   );
 
-  const atualizarStatus = async (id: number, novoStatus: string) => {
+  const atualizarStatusConsulta = async (id: number, novoStatus: string) => {
     setLoading(true);
     try {
-      const updated = await updateManutencaoStatus(id, novoStatus);
-      Alert.alert("Sucesso", `Status da solicitação ${id} atualizado para ${novoStatus}.`);
-      console.log("ADMIN: Solicitação atualizada:", updated);
-      fetchSolicitacoes(); // Recarregar a lista para mostrar a alteração
+      // Você precisará de uma função updateConsultaStatus na sua API para isso
+      // Ex: await updateConsultaStatus(id, novoStatus);
+      Alert.alert("Sucesso", `Status da consulta ${id} atualizado para ${novoStatus}.`);
+      fetchConsultas(); // Recarregar a lista
     } catch (err: any) {
-      console.error("ADMIN: Erro ao atualizar status:", err);
-      let errorMessage = "Não foi possível atualizar o status da solicitação.";
+      console.error("ADMIN: Erro ao atualizar status da consulta:", err);
+      let errorMessage = "Não foi possível atualizar o status da consulta.";
       if (err.response) {
         if (err.response.data && err.response.data.detail) {
           errorMessage = `Erro da API: ${err.response.data.detail}`;
@@ -109,21 +109,20 @@ const GerenciarManutencoesScreen = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColorConsulta = (status: string) => {
     switch (status) {
-      case 'Concluído': return '#28a745';
-      case 'Em andamento': return '#ffc107';
-      case 'Pendente': return '#007bff';
-      case 'Cancelado': return '#dc3545';
+      case 'Concluída': return '#28a745';
+      case 'Agendada': return '#007bff';
+      case 'Cancelada': return '#dc3545';
       default: return '#ccc';
     }
   };
 
-  if (loading && solicitacoes.length === 0) {
+  if (loading && consultas.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3355ce" />
-        <Text style={styles.loadingText}>A carregar solicitações...</Text>
+        <Text style={styles.loadingText}>A carregar consultas...</Text>
       </View>
     );
   }
@@ -132,7 +131,7 @@ const GerenciarManutencoesScreen = () => {
     return (
       <View style={styles.errorContainer}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchSolicitacoes}>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchConsultas}>
           <Text style={styles.retryButtonText}>Tentar Novamente</Text>
         </TouchableOpacity>
       </View>
@@ -145,17 +144,17 @@ const GerenciarManutencoesScreen = () => {
       <View style={styles.container}>
      
 
-        {solicitacoes.length === 0 ? (
-          <Text style={styles.noSolicitacoesText}>Nenhuma solicitação de manutenção encontrada.</Text>
+        {consultas.length === 0 ? (
+          <Text style={styles.noConsultasText}>Nenhuma consulta encontrada.</Text>
         ) : (
-          solicitacoes.map((item) => {
+          consultas.map((item) => {
             const userDetails = usersCache[item.user_id]; // Obtém os detalhes do utilizador da cache
             return (
               <View key={item.id} style={styles.card}>
-                <Ionicons name="construct" size={24} color="#3355ce" style={styles.icon} />
+                <Ionicons name="calendar-outline" size={24} color="#3355ce" style={styles.icon} />
                 <View style={styles.cardContent}>
                   <Text style={styles.cardText}>
-                    <Text style={styles.label}>ID da Solicitação:</Text> {item.id}
+                    <Text style={styles.label}>ID da Consulta:</Text> {item.id}
                   </Text>
                   {userDetails ? ( // Exibe nome e email se disponível
                     <>
@@ -172,23 +171,25 @@ const GerenciarManutencoesScreen = () => {
                     </Text>
                   )}
                   <Text style={styles.cardText}>
-                    <Text style={styles.label}>Descrição:</Text> {item.descricao}
+                    <Text style={styles.label}>Horário:</Text> {new Date(item.horario).toLocaleString('pt-BR')}
                   </Text>
-                  <Text style={styles.cardText}>
-                    <Text style={styles.label}>Tipo:</Text> {item.tipo_solicitacao}
+                  <Text style={[styles.cardText, { color: getStatusColorConsulta(item.status) }]}>
+                    <Text style={styles.label}>Status:</Text> {item.status}
                   </Text>
-
-                  <Text style={styles.label}>Status:</Text>
+                  
+                  {/* Opções para atualizar status (apenas se o backend tiver o PUT/PATCH) */}
                   <View style={styles.statusContainer}>
-                    {tiposStatus.map((status) => (
+                    {tiposStatusConsulta.map((status) => (
                       <TouchableOpacity
                         key={status}
                         style={[
                           styles.statusButton,
-                          item.status === status && { backgroundColor: getStatusColor(status) },
-                          { borderColor: getStatusColor(status) },
+                          { 
+                            borderColor: getStatusColorConsulta(status), 
+                            backgroundColor: item.status === status ? getStatusColorConsulta(status) : styles.statusButton.backgroundColor 
+                          },
                         ]}
-                        onPress={() => atualizarStatus(item.id, status)}
+                        onPress={() => atualizarStatusConsulta(item.id, status)}
                       >
                         <Text
                           style={[
@@ -209,16 +210,6 @@ const GerenciarManutencoesScreen = () => {
       </View>
     </ScrollView>
   );
-};
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'Concluído': return '#28a745';
-    case 'Em andamento': return '#ffc107';
-    case 'Pendente': return '#007bff';
-    case 'Cancelado': return '#dc3545';
-    default: return '#ccc';
-  }
 };
 
 const styles = StyleSheet.create({
@@ -320,7 +311,7 @@ const styles = StyleSheet.create({
     color: '#3355ce',
     fontFamily: 'Afacad-Regular',
   },
-  noSolicitacoesText: {
+  noConsultasText: {
     textAlign: 'center',
     marginTop: 20,
     fontSize: 16,
@@ -328,6 +319,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Afacad-Regular',
   }
 });
-
-
-export default GerenciarManutencoesScreen;
+export default GerenciarConsultasScreen;
